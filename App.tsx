@@ -1,15 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  JobRole, 
   HiringCriteria, 
   Candidate, 
   CandidateStatus 
-} from './types.ts';
-import Navigation from './components/Navigation.tsx';
-import JobConfig from './components/JobConfig.tsx';
-import Dashboard from './components/Dashboard.tsx';
-import FileUploader from './components/FileUploader.tsx';
+} from './types';
+import Navigation from './components/Navigation';
+import JobConfig from './components/JobConfig';
+import Dashboard from './components/Dashboard';
+import FileUploader from './components/FileUploader';
 
 const STORAGE_KEY_CANDIDATES = 'gh_candidates_data';
 const STORAGE_KEY_CRITERIA = 'gh_hiring_criteria';
