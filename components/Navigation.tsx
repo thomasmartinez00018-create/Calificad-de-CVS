@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface NavigationProps {
@@ -54,8 +53,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Sede Palermo</p>
             </div>
           </div>
-          <div className="text-[9px] font-black text-indigo-500/50 uppercase tracking-[0.2em] text-center bg-indigo-500/5 py-1 rounded-md">
-            Build: v1.2.0-PROD
+          <div className="text-[9px] font-black text-indigo-500 uppercase tracking-[0.2em] text-center bg-indigo-500/10 py-2 rounded-xl border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]">
+            Build: v1.3.0-FIX
           </div>
         </div>
       </div>

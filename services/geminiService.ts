@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { CandidateAnalysis, JobRole, HiringCriteria } from "../types";
 
@@ -6,12 +5,13 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // En Vite, process.env.API_KEY se inyecta como un string literal
+  // Capturamos el valor inyectado por Vite
   const apiKey = process.env.API_KEY;
 
-  if (!apiKey || apiKey === "" || apiKey === "undefined") {
-    console.error("DEBUG: API Key no detectada en este entorno.");
-    throw new Error("API_KEY no configurada. Añádela en Vercel y haz un Redeploy.");
+  // Verificamos si es un string vacío, o si es literalmente la palabra "undefined" (común en fallos de build)
+  if (!apiKey || apiKey.trim() === "" || apiKey === "undefined" || apiKey.length < 10) {
+    console.error("CRITICAL: API Key no detectada correctamente en el cliente.");
+    throw new Error("ERROR DE CONFIGURACIÓN: La web no detecta tu API Key. 1. Verifica Vercel. 2. Limpia el caché de tu celular.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -58,8 +58,8 @@ export const analyzeResume = async (
     return JSON.parse(textOutput);
   } catch (error: any) {
     console.error("Gemini Service Error:", error);
-    if (error.message?.includes('403')) throw new Error("La API Key es inválida.");
-    if (error.message?.includes('429')) throw new Error("Límite de cuota alcanzado.");
+    if (error.message?.includes('403')) throw new Error("La API Key en Vercel parece ser inválida.");
+    if (error.message?.includes('429')) throw new Error("Límite de cuota de Google alcanzado.");
     throw error;
   }
 };
