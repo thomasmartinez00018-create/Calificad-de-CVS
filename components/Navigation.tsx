@@ -17,7 +17,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
       {/* Desktop Sidebar */}
       <div className="hidden md:flex w-72 bg-slate-950 h-full flex-col p-8 text-white shrink-0 border-r border-slate-800">
         <div className="flex items-center gap-3 mb-12">
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 font-black text-white">G</div>
+          {/* CAMBIO DE COLOR: De Indigo a Naranja para verificar actualización */}
+          <div className="bg-gradient-to-br from-orange-500 to-red-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 font-black text-white">G</div>
           <div className="flex flex-col">
             <h1 className="text-lg font-black tracking-tight leading-none">GastroHire</h1>
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Intelligence ATS</span>
@@ -35,7 +36,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
                   : 'text-slate-500 hover:text-slate-200 hover:bg-white/5'
               }`}
             >
-              <span className={`${activeTab === tab.id ? 'text-indigo-400' : 'group-hover:text-slate-300'}`}>
+              <span className={`${activeTab === tab.id ? 'text-orange-400' : 'group-hover:text-slate-300'}`}>
                 {tab.icon}
               </span>
               <span className="text-sm">{tab.label}</span>
@@ -53,8 +54,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Sede Palermo</p>
             </div>
           </div>
-          <div className="text-[9px] font-black text-indigo-500 uppercase tracking-[0.2em] text-center bg-indigo-500/10 py-2 rounded-xl border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]">
-            Build: v1.3.0-FIX
+          <div className="text-[9px] font-black text-orange-500 uppercase tracking-[0.2em] text-center bg-orange-500/10 py-2 rounded-xl border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+            Build: v1.5.0-FINAL
           </div>
         </div>
       </div>
@@ -67,8 +68,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
             onClick={() => onTabChange(tab.id as any)}
             className={`flex flex-col items-center gap-1 transition-all ${
               tab.primary 
-                ? 'bg-indigo-600 text-white p-4 rounded-2xl -mt-12 shadow-2xl shadow-indigo-300 ring-8 ring-slate-50' 
-                : activeTab === tab.id ? 'text-indigo-600' : 'text-slate-400'
+                ? 'bg-orange-600 text-white p-4 rounded-2xl -mt-12 shadow-2xl shadow-orange-300 ring-8 ring-slate-50' 
+                : activeTab === tab.id ? 'text-orange-600' : 'text-slate-400'
             }`}
           >
             {tab.icon}
