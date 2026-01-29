@@ -13,6 +13,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentFileName, setCurrentFileName] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const calculateFinalScore = (aiScore: number, candidateExp: number, minExp: number): number => {
     let expScore = 100;
@@ -27,9 +28,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
+    setErrorMessage(null);
     setProgress(0);
     const total = files.length;
     const results: Candidate[] = [];
+    let errorsCount = 0;
 
     for (let i = 0; i < total; i++) {
       const file = files[i];
@@ -37,6 +40,10 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
       
       try {
         const text = await extractTextFromPdf(file);
+        if (!text.trim()) {
+          throw new Error("No se pudo extraer texto del PDF.");
+        }
+        
         const analysis = await analyzeResume(text, criteria);
         
         const puntajeFinal = calculateFinalScore(
@@ -55,17 +62,23 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
           puntajeFinal
         });
 
-        setProgress(Math.round(((i + 1) / total) * 100));
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        console.error(`Error procesando ${file.name}:`, err);
+        errorsCount++;
       }
+      setProgress(Math.round(((i + 1) / total) * 100));
     }
 
-    onAnalysisComplete(results);
-    setTimeout(() => {
+    if (results.length > 0) {
+      onAnalysisComplete(results);
+      setTimeout(() => {
+        setIsUploading(false);
+        setCurrentFileName('');
+      }, 500);
+    } else {
       setIsUploading(false);
-      setCurrentFileName('');
-    }, 500);
+      setErrorMessage(`No se pudo analizar ningún archivo. ${errorsCount} errores detectados. Verifica tu API Key o los archivos PDF.`);
+    }
   };
 
   return (
@@ -73,15 +86,22 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
       <div className={`bg-white rounded-[40px] p-8 md:p-12 shadow-xl border border-slate-50 transition-all ${isUploading ? 'scale-105' : ''}`}>
         {!isUploading ? (
           <div className="text-center space-y-6">
-            <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-600 animate-pulse">
+            <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-600">
               <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             </div>
             <div>
               <h2 className="text-2xl font-black text-slate-900">Subir CVs</h2>
               <p className="text-sm font-medium text-slate-400 mt-2 leading-relaxed px-4">
-                Selecciona uno o varios archivos PDF para procesar con IA según el perfil <span className="text-indigo-600 font-bold">#{criteria.role}</span>
+                Selecciona archivos PDF para el puesto <span className="text-indigo-600 font-bold">#{criteria.role}</span>
               </p>
             </div>
+
+            {errorMessage && (
+              <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-2xl text-xs font-bold leading-relaxed">
+                {errorMessage}
+              </div>
+            )}
+
             <label className="block">
               <span className="w-full bg-slate-900 text-white py-5 px-8 rounded-3xl font-black text-lg shadow-xl block cursor-pointer active:scale-95 transition-all">
                 Seleccionar PDF
@@ -104,17 +124,13 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
             </div>
             <div className="space-y-2">
               <p className="text-sm font-bold text-slate-700 truncate px-4">"{currentFileName}"</p>
-              <div className="flex items-center justify-center gap-2">
-                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce"></div>
-                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce delay-100"></div>
-                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce delay-200"></div>
-              </div>
+              <p className="text-[10px] text-slate-400 animate-pulse font-bold uppercase">Analizando perfiles...</p>
             </div>
           </div>
         )}
       </div>
 
-      {!isUploading && (
+      {!isUploading && !errorMessage && (
         <div className="mt-10 bg-indigo-600 p-6 rounded-[32px] text-white flex items-center gap-4 shadow-xl shadow-indigo-200">
           <div className="bg-indigo-400/30 p-2 rounded-xl">
              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

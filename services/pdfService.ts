@@ -2,6 +2,10 @@
 declare const pdfjsLib: any;
 
 export const extractTextFromPdf = async (file: File): Promise<string> => {
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error("La librería PDF.js no se ha cargado correctamente.");
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   
