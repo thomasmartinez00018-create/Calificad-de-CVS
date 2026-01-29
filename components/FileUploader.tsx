@@ -32,7 +32,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
     setProgress(0);
     const total = files.length;
     const results: Candidate[] = [];
-    let errorsCount = 0;
 
     for (let i = 0; i < total; i++) {
       const file = files[i];
@@ -40,10 +39,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
       
       try {
         const text = await extractTextFromPdf(file);
-        if (!text.trim()) {
-          throw new Error("No se pudo extraer texto del PDF.");
-        }
-        
         const analysis = await analyzeResume(text, criteria);
         
         const puntajeFinal = calculateFinalScore(
@@ -63,22 +58,18 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
         });
 
       } catch (err: any) {
-        console.error(`Error procesando ${file.name}:`, err);
-        errorsCount++;
+        console.error("Error en el proceso:", err);
+        setErrorMessage(err.message || "Error desconocido analizando el archivo.");
+        break; // Detenemos el proceso si hay un error crítico
       }
       setProgress(Math.round(((i + 1) / total) * 100));
     }
 
-    if (results.length > 0) {
+    if (results.length > 0 && !errorMessage) {
       onAnalysisComplete(results);
-      setTimeout(() => {
-        setIsUploading(false);
-        setCurrentFileName('');
-      }, 500);
-    } else {
-      setIsUploading(false);
-      setErrorMessage(`No se pudo analizar ningún archivo. ${errorsCount} errores detectados. Verifica tu API Key o los archivos PDF.`);
     }
+    
+    setIsUploading(false);
   };
 
   return (
@@ -92,13 +83,13 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
             <div>
               <h2 className="text-2xl font-black text-slate-900">Subir CVs</h2>
               <p className="text-sm font-medium text-slate-400 mt-2 leading-relaxed px-4">
-                Selecciona archivos PDF para el puesto <span className="text-indigo-600 font-bold">#{criteria.role}</span>
+                Puesto: <span className="text-indigo-600 font-bold">{criteria.role}</span>
               </p>
             </div>
 
             {errorMessage && (
-              <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-2xl text-xs font-bold leading-relaxed">
-                {errorMessage}
+              <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-2xl text-xs font-bold">
+                ⚠️ {errorMessage}
               </div>
             )}
 
@@ -108,38 +99,26 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
               </span>
               <input type="file" multiple accept=".pdf" className="hidden" onChange={handleFileChange} />
             </label>
-            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Capacidad máx: 10 CVs por lote</p>
+            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Solo archivos PDF</p>
           </div>
         ) : (
           <div className="text-center space-y-8 py-4">
             <div className="relative w-40 h-40 mx-auto">
                <svg className="w-full h-full -rotate-90">
                  <circle cx="80" cy="80" r="74" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-50" />
-                 <circle cx="80" cy="80" r="74" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={465} strokeDashoffset={465 - (465 * progress) / 100} className="text-indigo-600 transition-all duration-700 ease-out stroke-round" strokeLinecap="round" />
+                 <circle cx="80" cy="80" r="74" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={465} strokeDashoffset={465 - (465 * progress) / 100} className="text-indigo-600 transition-all duration-700 ease-out" strokeLinecap="round" />
                </svg>
                <div className="absolute inset-0 flex flex-col items-center justify-center">
                  <span className="text-3xl font-black text-slate-900">{progress}%</span>
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Listo</span>
                </div>
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-bold text-slate-700 truncate px-4">"{currentFileName}"</p>
-              <p className="text-[10px] text-slate-400 animate-pulse font-bold uppercase">Analizando perfiles...</p>
+              <p className="text-sm font-bold text-slate-700 truncate px-4">Analizando: {currentFileName}</p>
+              <p className="text-[10px] text-indigo-500 animate-pulse font-black uppercase">Consultando Inteligencia Artificial...</p>
             </div>
           </div>
         )}
       </div>
-
-      {!isUploading && !errorMessage && (
-        <div className="mt-10 bg-indigo-600 p-6 rounded-[32px] text-white flex items-center gap-4 shadow-xl shadow-indigo-200">
-          <div className="bg-indigo-400/30 p-2 rounded-xl">
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          </div>
-          <p className="text-xs font-bold leading-relaxed">
-            La IA evaluará automáticamente la experiencia técnica y la actitud semántica del texto.
-          </p>
-        </div>
-      )}
     </div>
   );
 };
