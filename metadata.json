@@ -1,0 +1,5 @@
+{
+  "name": "GastroHire AI",
+  "description": "An intelligent Applicant Tracking System (ATS) for local food businesses, using Gemini AI to filter and rank candidates based on discipline, experience, and proximity.",
+  "requestFramePermissions": []
+}

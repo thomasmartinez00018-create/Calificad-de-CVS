@@ -1,0 +1,15 @@
+
+{
+  "name": "gastrohire-ai",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "@google/genai": "^1.38.0"
+  },
+  "scripts": {
+    "start": "npx serve .",
+    "build": "echo 'No build step required for ESM-native app'"
+  }
+}
