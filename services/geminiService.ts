@@ -6,11 +6,12 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // process.env.API_KEY es reemplazado por Vite durante el build
+  // En Vite, process.env.API_KEY se inyecta como un string literal
   const apiKey = process.env.API_KEY;
 
-  if (!apiKey || apiKey === "undefined") {
-    throw new Error("API_KEY no configurada. Por favor, añádela en las variables de entorno de Vercel.");
+  if (!apiKey || apiKey === "" || apiKey === "undefined") {
+    console.error("DEBUG: API Key no detectada en este entorno.");
+    throw new Error("API_KEY no configurada. Añádela en Vercel y haz un Redeploy.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -52,22 +53,13 @@ export const analyzeResume = async (
     });
 
     const textOutput = response.text;
-    if (!textOutput) {
-      throw new Error("La IA no generó una respuesta válida.");
-    }
+    if (!textOutput) throw new Error("La IA no generó respuesta.");
 
     return JSON.parse(textOutput);
   } catch (error: any) {
-    console.error("Error detallado de Gemini:", error);
-    
-    if (error.message?.includes('403') || error.message?.includes('API_KEY_INVALID')) {
-      throw new Error("Error de Autenticación: La API Key en Vercel es incorrecta.");
-    }
-    
-    if (error.message?.includes('429')) {
-      throw new Error("Límite de cuota excedido. Espera un momento.");
-    }
-
-    throw new Error("Error en el análisis del CV. Intenta de nuevo.");
+    console.error("Gemini Service Error:", error);
+    if (error.message?.includes('403')) throw new Error("La API Key es inválida.");
+    if (error.message?.includes('429')) throw new Error("Límite de cuota alcanzado.");
+    throw error;
   }
 };

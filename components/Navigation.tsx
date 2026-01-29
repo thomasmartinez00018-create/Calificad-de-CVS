@@ -18,7 +18,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
       {/* Desktop Sidebar */}
       <div className="hidden md:flex w-72 bg-slate-950 h-full flex-col p-8 text-white shrink-0 border-r border-slate-800">
         <div className="flex items-center gap-3 mb-12">
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 font-black">G</div>
+          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 font-black text-white">G</div>
           <div className="flex flex-col">
             <h1 className="text-lg font-black tracking-tight leading-none">GastroHire</h1>
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Intelligence ATS</span>
@@ -40,18 +40,22 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
                 {tab.icon}
               </span>
               <span className="text-sm">{tab.label}</span>
-              {tab.id === 'dashboard' && <span className="ml-auto bg-indigo-500/20 text-indigo-400 text-[10px] px-2 py-1 rounded-lg">Live</span>}
             </button>
           ))}
         </nav>
 
-        <div className="pt-8 border-t border-slate-800 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 overflow-hidden">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" />
+        <div className="pt-8 border-t border-slate-800 space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 overflow-hidden shrink-0">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <p className="text-xs font-black truncate">Admin Local</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Sede Palermo</p>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <p className="text-xs font-black">Admin Local</p>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Sede Palermo</p>
+          <div className="text-[9px] font-black text-indigo-500/50 uppercase tracking-[0.2em] text-center bg-indigo-500/5 py-1 rounded-md">
+            Build: v1.2.0-PROD
           </div>
         </div>
       </div>
