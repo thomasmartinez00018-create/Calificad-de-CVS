@@ -1,17 +1,15 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { CandidateAnalysis, JobRole, HiringCriteria } from "../types";
+import { CandidateAnalysis, HiringCriteria } from "../types";
 
 export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // Intentamos obtener la llave de múltiples lugares inyectados por Vite
-  const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  // En v2.0.0 usamos directamente la variable definida por Vite
+  const apiKey = process.env.API_KEY;
 
-  if (!apiKey || apiKey === "undefined" || apiKey === "" || apiKey.length < 10) {
-    const errorDetail = `Valor detectado: "${apiKey}". Tipo: ${typeof apiKey}`;
-    console.error("CRITICAL API KEY ERROR:", errorDetail);
-    throw new Error(`ERROR DE CONFIGURACIÓN: La app no detecta tu llave. Detalle: ${errorDetail}. Por favor, limpia el caché de tu móvil.`);
+  if (!apiKey || apiKey === "undefined" || apiKey === "") {
+    throw new Error("ERROR: API Key no detectada. Por favor, realiza un Redeploy manual en Vercel.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -22,13 +20,12 @@ export const analyzeResume = async (
       contents: `Actúa como un reclutador experto en gastronomía. 
       Analiza este CV para el puesto de ${criteria.role}.
       
-      CRITERIOS DEL RECLUTADOR:
-      - Experiencia mínima requerida: ${criteria.minYearsExperience} años.
-      - Habilidades clave: ${criteria.requiredSkills.join(', ')}.
-      - Disponibilidad deseada: ${criteria.availability}.
-      - Otros criterios: ${criteria.priorityCriteria}.
+      CRITERIOS:
+      - Exp mínima: ${criteria.minYearsExperience} años.
+      - Disponibilidad: ${criteria.availability}.
+      - Instrucciones: ${criteria.priorityCriteria}.
       
-      TEXTO DEL CV:
+      CV:
       ${resumeText}`,
       config: {
         responseMimeType: "application/json",
@@ -54,7 +51,7 @@ export const analyzeResume = async (
 
     return JSON.parse(response.text);
   } catch (error: any) {
-    console.error("Gemini Service Error:", error);
+    console.error("Gemini Error:", error);
     throw error;
   }
 };
