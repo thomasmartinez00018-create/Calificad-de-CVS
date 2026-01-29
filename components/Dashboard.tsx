@@ -17,7 +17,10 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
   const filteredCandidates = useMemo(() => {
     return candidates
       .filter(c => filterRole === 'Todos' || c.jobRole === filterRole)
-      .filter(c => c.nombre.toLowerCase().includes(search.toLowerCase()) || c.localidad.toLowerCase().includes(search.toLowerCase()))
+      .filter(c => 
+        c.nombre.toLowerCase().includes(search.toLowerCase()) || 
+        c.localidad.toLowerCase().includes(search.toLowerCase())
+      )
       .sort((a, b) => b.puntajeFinal - a.puntajeFinal);
   }, [candidates, filterRole, search]);
 
@@ -34,7 +37,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
             <span className="w-1 h-1 rounded-full bg-slate-300"></span>
             <span className="text-green-500 font-bold flex items-center gap-1 text-[10px] uppercase tracking-tighter">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-              Base Local Activa
+              Base Sincronizada
             </span>
           </p>
         </div>
@@ -45,19 +48,19 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
               onClick={onClearAll}
               className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100"
             >
-              Resetear Base
+              Vaciar Base de Datos
             </button>
           )}
         </div>
       </header>
 
-      {/* Filters Bar - Sin Lupa */}
+      {/* Filters Bar - Sin iconos innecesarios */}
       <div className="bg-white p-2 rounded-[28px] shadow-sm border border-slate-100 flex flex-col md:flex-row gap-2">
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="Escribe para buscar por nombre o zona..."
-            className="w-full bg-slate-50/50 px-6 py-4 rounded-2xl border-none text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-300"
+            className="w-full bg-slate-50/50 px-8 py-4 rounded-2xl border-none text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-300"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -67,7 +70,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
             <button
               key={role}
               onClick={() => setFilterRole(role as any)}
-              className={`px-5 py-4 rounded-2xl text-[11px] font-black transition-all whitespace-nowrap uppercase tracking-tighter ${
+              className={`px-6 py-4 rounded-2xl text-[11px] font-black transition-all whitespace-nowrap uppercase tracking-tighter ${
                 filterRole === role 
                 ? 'bg-slate-900 text-white shadow-lg' 
                 : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
@@ -108,9 +111,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg">{c.jobRole}</span>
-                    <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                      {c.localidad}
-                    </span>
+                    <span className="text-xs font-bold text-slate-400">{c.localidad}</span>
                   </div>
                   
                   <div className="hidden sm:flex flex-wrap gap-1.5 mt-4">
@@ -141,7 +142,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
                   </div>
 
                   <div className="bg-indigo-50/30 p-5 rounded-3xl border border-indigo-100/50">
-                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Conclusión IA</p>
+                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Análisis IA</p>
                     <p className="text-sm text-slate-600 leading-relaxed font-medium italic">"{c.resumen}"</p>
                   </div>
 
@@ -172,10 +173,10 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
             </div>
           ))
         ) : (
-          <div className="col-span-full text-center py-40 px-6">
-            <p className="text-4xl font-black text-slate-200 tracking-tighter mb-4 select-none">LISTA VACÍA</p>
-            <h3 className="text-xl font-bold text-slate-600">No hay candidatos para procesar</h3>
-            <p className="text-slate-400 mt-2 max-w-xs mx-auto text-sm">Ve a la sección "Nueva Carga" para analizar currículums con inteligencia artificial.</p>
+          <div className="col-span-full text-center py-48 px-6">
+            <p className="text-5xl font-black text-slate-100 tracking-tighter mb-4 select-none uppercase">Sin Resultados</p>
+            <h3 className="text-xl font-bold text-slate-400">Tu radar de talento está limpio</h3>
+            <p className="text-slate-300 mt-2 max-w-xs mx-auto text-sm font-medium">Sube currículums en la sección de carga para empezar el análisis.</p>
           </div>
         )}
       </div>
