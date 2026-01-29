@@ -2,12 +2,22 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { CandidateAnalysis, JobRole, HiringCriteria } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Función segura para obtener la API Key sin romper el hilo de ejecución del navegador
+const getAIInstance = () => {
+  let apiKey = "";
+  try {
+    apiKey = (typeof process !== 'undefined' && process.env.API_KEY) ? process.env.API_KEY : "";
+  } catch (e) {
+    console.warn("API_KEY no encontrada en process.env");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
+  const ai = getAIInstance();
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Actúa como un reclutador experto en gastronomía. 

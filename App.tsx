@@ -5,17 +5,16 @@ import {
   HiringCriteria, 
   Candidate, 
   CandidateStatus 
-} from './types';
-import Navigation from './components/Navigation';
-import JobConfig from './components/JobConfig';
-import Dashboard from './components/Dashboard';
-import FileUploader from './components/FileUploader';
+} from './types.ts';
+import Navigation from './components/Navigation.tsx';
+import JobConfig from './components/JobConfig.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import FileUploader from './components/FileUploader.tsx';
 
 const STORAGE_KEY_CANDIDATES = 'gh_candidates_data';
 const STORAGE_KEY_CRITERIA = 'gh_hiring_criteria';
 
 const App: React.FC = () => {
-  // Inicialización de estado desde localStorage
   const [candidates, setCandidates] = useState<Candidate[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_CANDIDATES);
     return saved ? JSON.parse(saved) : [];
@@ -35,12 +34,10 @@ const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'config' | 'upload'>('dashboard');
 
-  // Efecto para persistir candidatos automáticamente al cambiar
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_CANDIDATES, JSON.stringify(candidates));
   }, [candidates]);
 
-  // Efecto para persistir criterios automáticamente al cambiar
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_CRITERIA, JSON.stringify(currentCriteria));
   }, [currentCriteria]);
@@ -59,7 +56,7 @@ const App: React.FC = () => {
   };
 
   const handleClearAll = () => {
-    if (window.confirm('¿Estás seguro de eliminar todos los candidatos? Esta acción no se puede deshacer.')) {
+    if (window.confirm('¿Estás seguro de eliminar todos los candidatos?')) {
       setCandidates([]);
     }
   };
