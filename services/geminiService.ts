@@ -5,13 +5,13 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // Capturamos el valor inyectado por Vite
-  const apiKey = process.env.API_KEY;
+  // Intentamos obtener la llave de múltiples lugares inyectados por Vite
+  const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
 
-  // Verificamos si es un string vacío, o si es literalmente la palabra "undefined" (común en fallos de build)
-  if (!apiKey || apiKey.trim() === "" || apiKey === "undefined" || apiKey.length < 10) {
-    console.error("CRITICAL: API Key no detectada correctamente en el cliente.");
-    throw new Error("ERROR DE CONFIGURACIÓN: La web no detecta tu API Key. 1. Verifica Vercel. 2. Limpia el caché de tu celular.");
+  if (!apiKey || apiKey === "undefined" || apiKey === "" || apiKey.length < 10) {
+    const errorDetail = `Valor detectado: "${apiKey}". Tipo: ${typeof apiKey}`;
+    console.error("CRITICAL API KEY ERROR:", errorDetail);
+    throw new Error(`ERROR DE CONFIGURACIÓN: La app no detecta tu llave. Detalle: ${errorDetail}. Por favor, limpia el caché de tu móvil.`);
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -52,14 +52,9 @@ export const analyzeResume = async (
       }
     });
 
-    const textOutput = response.text;
-    if (!textOutput) throw new Error("La IA no generó respuesta.");
-
-    return JSON.parse(textOutput);
+    return JSON.parse(response.text);
   } catch (error: any) {
     console.error("Gemini Service Error:", error);
-    if (error.message?.includes('403')) throw new Error("La API Key en Vercel parece ser inválida.");
-    if (error.message?.includes('429')) throw new Error("Límite de cuota de Google alcanzado.");
     throw error;
   }
 };
