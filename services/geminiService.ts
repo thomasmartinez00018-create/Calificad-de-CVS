@@ -5,19 +5,31 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Intentar obtener la llave de múltiples fuentes para máxima compatibilidad móvil
+  const apiKey = process.env.API_KEY || (window as any).__GEMINI_KEY__;
+  
+  if (!apiKey) {
+    throw new Error("API Key no configurada. Verifique el entorno.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Extrae datos de este CV para el puesto de ${criteria.role}. 
-      REGLAS:
-      - Extrae años de experiencia TOTAL como número.
-      - Evalúa la CALIDAD de sus habilidades técnicas para el puesto (0-100) en 'ai_quality_score'.
-      - Genera 3 preguntas de entrevista breves sobre sus huecos laborales o dudas.
-      - Sé extremadamente conciso. No inventes datos.
+      contents: `Analiza este CV para el puesto de ${criteria.role}.
       
-      TEXTO:
+      CRITERIOS DE BÚSQUEDA DEL DUEÑO:
+      "${criteria.priorityCriteria}"
+
+      REGLAS DE EXTRACCIÓN:
+      - Extrae años de experiencia TOTAL como número entero.
+      - 'ai_quality_score': Evalúa de 0 a 100 qué tan bien encajan sus habilidades técnicas con el puesto de ${criteria.role}.
+      - 'localidad': Sé específico (ej: "Palermo", "Zona Norte").
+      - 'preguntasEntrevista': 3 preguntas cortas para validar su experiencia.
+      - 'resumen': Un párrafo breve y honesto sobre si vale la pena contratarlo.
+
+      TEXTO DEL CV:
       ${resumeText}`,
       config: {
         responseMimeType: "application/json",
@@ -41,10 +53,10 @@ export const analyzeResume = async (
     });
 
     const text = response.text;
-    if (!text) throw new Error("Respuesta vacía");
+    if (!text) throw new Error("La IA devolvió una respuesta vacía.");
     return JSON.parse(text);
   } catch (error: any) {
-    console.error("Gemini Error:", error);
+    console.error("Error crítico en análisis Gemini:", error);
     throw error;
   }
 };
