@@ -9,8 +9,9 @@ export default defineConfig({
     sourcemap: false
   },
   define: {
-    // Inyectamos la llave en múltiples formatos para evitar fallos de resolución en navegadores móviles
+    // Forzamos la inyección para que esté disponible tanto en process.env como en variables globales de window
     'process.env.API_KEY': JSON.stringify(process.env.API_KEY || ''),
-    'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(process.env.API_KEY || '')
+    'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(process.env.API_KEY || ''),
+    'window.VITE_GEMINI_API_KEY': JSON.stringify(process.env.API_KEY || '')
   }
 });

@@ -27,51 +27,23 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
     window.open(`https://wa.me/${c.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
   };
 
+  const handleHardReset = () => {
+    if (window.confirm('¿RESETEAR SISTEMA? Se borrará el caché y todos los datos. Úsalo si la app no carga bien.')) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+
   const getCardTheme = (c: Candidate) => {
     if (c.status === CandidateStatus.DESCARTADO) {
-      return {
-        bg: 'bg-red-50/50',
-        border: 'border-red-200',
-        accent: 'bg-red-400',
-        text: 'text-red-700',
-        label: 'DESCARTADO',
-        opacity: 'opacity-75'
-      };
+      return { bg: 'bg-red-50/50', border: 'border-red-200', accent: 'bg-red-400', text: 'text-red-700', label: 'DESCARTADO', opacity: 'opacity-75' };
     }
     if (c.status === CandidateStatus.ENTREVISTA) {
-      return {
-        bg: 'bg-emerald-50/80',
-        border: 'border-emerald-300',
-        accent: 'bg-emerald-600',
-        text: 'text-emerald-800',
-        label: 'AGENDADO',
-        opacity: 'opacity-100'
-      };
+      return { bg: 'bg-emerald-50/80', border: 'border-emerald-300', accent: 'bg-emerald-600', text: 'text-emerald-800', label: 'AGENDADO', opacity: 'opacity-100' };
     }
-    if (c.puntajeFinal >= 80) return {
-      bg: 'bg-white',
-      border: 'border-emerald-100',
-      accent: 'bg-emerald-500',
-      text: 'text-emerald-600',
-      label: 'TOP MATCH',
-      opacity: 'opacity-100'
-    };
-    if (c.puntajeFinal >= 50) return {
-      bg: 'bg-white',
-      border: 'border-slate-100',
-      accent: 'bg-slate-900',
-      text: 'text-slate-700',
-      label: 'APTO',
-      opacity: 'opacity-100'
-    };
-    return {
-      bg: 'bg-white',
-      border: 'border-rose-100',
-      accent: 'bg-rose-400',
-      text: 'text-rose-600',
-      label: 'BAJO',
-      opacity: 'opacity-100'
-    };
+    if (c.puntajeFinal >= 80) return { bg: 'bg-white', border: 'border-emerald-100', accent: 'bg-emerald-500', text: 'text-emerald-600', label: 'TOP MATCH', opacity: 'opacity-100' };
+    if (c.puntajeFinal >= 50) return { bg: 'bg-white', border: 'border-slate-100', accent: 'bg-slate-900', text: 'text-slate-700', label: 'APTO', opacity: 'opacity-100' };
+    return { bg: 'bg-white', border: 'border-rose-100', accent: 'bg-rose-400', text: 'text-rose-600', label: 'BAJO', opacity: 'opacity-100' };
   };
 
   return (
@@ -79,17 +51,26 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
       <header className="flex justify-between items-center px-2">
         <div>
           <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter italic uppercase">Talento</h2>
-          <p className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ranking V3.7 Mobile Ready</p>
+          <p className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ranking V3.8 Mobile Pro</p>
         </div>
-        {candidates.length > 0 && (
+        <div className="flex gap-2">
           <button 
-            onPointerDown={(e) => { e.preventDefault(); onClearAll(); }}
-            className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm hover:border-red-500 active:bg-red-50 transition-all"
+            onClick={handleHardReset}
+            className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-2 md:px-4 md:py-3 rounded-xl shadow-sm hover:border-slate-400 active:bg-slate-50 transition-all"
           >
-            <svg className="w-3 h-3 md:w-4 md:h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Vaciar</span>
+            <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            <span className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest">Reset</span>
           </button>
-        )}
+          {candidates.length > 0 && (
+            <button 
+              onClick={onClearAll}
+              className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-2 md:px-4 md:py-3 rounded-xl shadow-sm hover:border-red-500 active:bg-red-50 transition-all"
+            >
+              <svg className="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              <span className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest">Vaciar</span>
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="relative group">
@@ -142,7 +123,6 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
 
               {selectedId === c.id && (
                 <div className={`px-4 pb-6 md:px-8 md:pb-8 pt-4 space-y-4 md:space-y-6 animate-in slide-in-from-top-2 duration-300 border-t border-slate-100 ${c.status === CandidateStatus.DESCARTADO ? 'bg-red-50/20' : 'bg-slate-50'}`}>
-                  
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {[ {l: 'WhatsApp', v: c.telefono}, {l: 'E-mail', v: c.email}, {l: 'Zona', v: c.localidad}, {l: 'Calidad IA', v: `${c.ai_quality_score}%`, dark: true} ].map((stat, i) => (
                       <div key={i} className={`${stat.dark ? theme.accent : 'bg-white'} p-3 md:p-5 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 overflow-hidden`}>
@@ -151,7 +131,6 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
                       </div>
                     ))}
                   </div>
-
                   <div className="bg-white p-4 md:p-6 rounded-2xl md:rounded-[2rem] border border-slate-100 space-y-3">
                      <h4 className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Habilidades Clave</h4>
                      <div className="flex flex-wrap gap-1.5">
@@ -160,14 +139,12 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onUpdateStatus, onDel
                        ))}
                      </div>
                   </div>
-
                   <div className="space-y-4">
                     <div className="bg-white p-5 rounded-2xl border border-slate-100">
                       <h4 className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase mb-2">Análisis Predictivo</h4>
                       <p className="text-[11px] md:text-sm font-bold text-slate-600 leading-relaxed italic">"{c.resumen}"</p>
                     </div>
                   </div>
-
                   <div className="flex flex-col md:flex-row justify-between items-center pt-6 border-t border-slate-200 gap-3">
                     <button onClick={(e) => { e.stopPropagation(); onDelete(c.id); }} className="text-[9px] font-black text-red-400 uppercase tracking-widest p-2">Eliminar</button>
                     <div className="flex gap-2 w-full md:w-auto">
