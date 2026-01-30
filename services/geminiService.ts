@@ -5,11 +5,11 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // Intentar obtener la llave de múltiples fuentes para máxima compatibilidad móvil
-  const apiKey = process.env.API_KEY || (window as any).__GEMINI_KEY__;
+  // Intentar obtener la llave de la forma más directa posible para evitar fallos de compilación/despliegue
+  const apiKey = (window as any).__GEMINI_KEY__ || process.env.API_KEY;
   
-  if (!apiKey) {
-    throw new Error("API Key no configurada. Verifique el entorno.");
+  if (!apiKey || apiKey.length < 10) {
+    throw new Error("ERROR_CONFIG: La llave de Inteligencia Artificial no está activa o es inválida.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -19,17 +19,15 @@ export const analyzeResume = async (
       model: 'gemini-3-flash-preview',
       contents: `Analiza este CV para el puesto de ${criteria.role}.
       
-      CRITERIOS DE BÚSQUEDA DEL DUEÑO:
+      CRITERIOS ESPECÍFICOS:
       "${criteria.priorityCriteria}"
 
-      REGLAS DE EXTRACCIÓN:
-      - Extrae años de experiencia TOTAL como número entero.
-      - 'ai_quality_score': Evalúa de 0 a 100 qué tan bien encajan sus habilidades técnicas con el puesto de ${criteria.role}.
-      - 'localidad': Sé específico (ej: "Palermo", "Zona Norte").
-      - 'preguntasEntrevista': 3 preguntas cortas para validar su experiencia.
-      - 'resumen': Un párrafo breve y honesto sobre si vale la pena contratarlo.
+      REGLAS:
+      - 'experienciaAnios': Solo el número (ej: 3).
+      - 'ai_quality_score': 0-100 basado en el match con ${criteria.role}.
+      - 'resumen': Un comentario breve para el dueño del local.
 
-      TEXTO DEL CV:
+      TEXTO:
       ${resumeText}`,
       config: {
         responseMimeType: "application/json",
@@ -53,10 +51,12 @@ export const analyzeResume = async (
     });
 
     const text = response.text;
-    if (!text) throw new Error("La IA devolvió una respuesta vacía.");
+    if (!text) throw new Error("ERROR_IA: La IA no respondió correctamente.");
     return JSON.parse(text);
   } catch (error: any) {
-    console.error("Error crítico en análisis Gemini:", error);
-    throw error;
+    console.error("Gemini Error:", error);
+    if (error.message?.includes('403')) throw new Error("ERROR_KEY: Tu API Key no tiene permisos o expiró.");
+    if (error.message?.includes('429')) throw new Error("ERROR_LIMIT: Demasiadas solicitudes. Espera un momento.");
+    throw new Error(`ERROR_ANALISIS: ${error.message || 'Error desconocido en la IA'}`);
   }
 };
