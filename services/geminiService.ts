@@ -5,11 +5,14 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // En v2.2.0 forzamos la lectura de la llave inyectada por Vite
-  const apiKey = process.env.API_KEY || (import.meta as any).env.VITE_GEMINI_API_KEY;
+  // En v2.4.0 damos prioridad máxima a la llave inyectada en el DOM por el index.html
+  const apiKey = 
+    (window as any).__GEMINI_KEY__ || 
+    process.env.API_KEY || 
+    (import.meta as any).env.VITE_GEMINI_API_KEY;
 
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    throw new Error("ERROR: Llave no detectada. Por favor, limpia el historial de tu celular y recarga.");
+    throw new Error("❌ FALLO CRÍTICO: El celular no encuentra la llave. Intenta abrir la web en MODO INCÓGNITO.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -20,10 +23,10 @@ export const analyzeResume = async (
       contents: `Analiza este CV para el puesto de ${criteria.role}.
       
       CRITERIOS:
-      - Experiencia: ${criteria.minYearsExperience} años.
-      - Info adicional: ${criteria.priorityCriteria}.
+      - Experiencia mínima: ${criteria.minYearsExperience} años.
+      - Prioridades: ${criteria.priorityCriteria}.
       
-      CV:
+      CV A ANALIZAR:
       ${resumeText}`,
       config: {
         responseMimeType: "application/json",
