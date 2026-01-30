@@ -5,11 +5,11 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // En v2.0.0 usamos directamente la variable definida por Vite
-  const apiKey = process.env.API_KEY;
+  // En v2.2.0 forzamos la lectura de la llave inyectada por Vite
+  const apiKey = process.env.API_KEY || (import.meta as any).env.VITE_GEMINI_API_KEY;
 
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    throw new Error("ERROR: API Key no detectada. Por favor, realiza un Redeploy manual en Vercel.");
+    throw new Error("ERROR: Llave no detectada. Por favor, limpia el historial de tu celular y recarga.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -17,13 +17,11 @@ export const analyzeResume = async (
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Actúa como un reclutador experto en gastronomía. 
-      Analiza este CV para el puesto de ${criteria.role}.
+      contents: `Analiza este CV para el puesto de ${criteria.role}.
       
       CRITERIOS:
-      - Exp mínima: ${criteria.minYearsExperience} años.
-      - Disponibilidad: ${criteria.availability}.
-      - Instrucciones: ${criteria.priorityCriteria}.
+      - Experiencia: ${criteria.minYearsExperience} años.
+      - Info adicional: ${criteria.priorityCriteria}.
       
       CV:
       ${resumeText}`,

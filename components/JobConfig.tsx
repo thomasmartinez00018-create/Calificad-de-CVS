@@ -11,12 +11,21 @@ const JobConfig: React.FC<JobConfigProps> = ({ criteria, onUpdate }) => {
   const roles: JobRole[] = ['Mozo', 'Cocinero', 'Delivery', 'Admin', 'Limpieza', 'Hostess'];
 
   const testApiKey = () => {
-    const key = process.env.API_KEY;
-    if (!key || key === "undefined") {
-      alert("❌ API Key NO inyectada correctamente.");
+    const key1 = process.env.API_KEY;
+    const key2 = (import.meta as any).env.VITE_GEMINI_API_KEY;
+    const finalKey = key1 || key2;
+
+    if (!finalKey || finalKey === "undefined" || finalKey === "") {
+      alert("❌ FALLO TOTAL: El celular sigue usando código antiguo o no hay llave.");
     } else {
-      alert(`✅ Conexión Exitosa (v2.0.0)\n\nKey: ${key.substring(0, 6)}...`);
+      alert(`✅ EXITO v2.2.0\n\nLlave detectada: ${finalKey.substring(0, 10)}...\n\nSi ves esto, ya puedes subir archivos.`);
     }
+  };
+
+  const clearAppCache = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
   };
 
   return (
@@ -24,18 +33,24 @@ const JobConfig: React.FC<JobConfigProps> = ({ criteria, onUpdate }) => {
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Criterios de Selección</h2>
-          <p className="text-sm font-medium text-slate-400">Versión estable: v2.0.0</p>
+          <p className="text-sm font-medium text-slate-400">Build: v2.2.0-FORCED (Rojo)</p>
         </div>
         <div className="flex gap-2">
           <button
-            onClick={testApiKey}
-            className="bg-violet-100 text-violet-700 px-6 py-3 rounded-2xl font-bold text-xs"
+            onClick={clearAppCache}
+            className="bg-slate-100 text-slate-600 px-4 py-3 rounded-2xl font-bold text-xs border border-slate-200"
           >
-            Diagnóstico v2.0
+            Limpiar Caché
+          </button>
+          <button
+            onClick={testApiKey}
+            className="bg-red-100 text-red-700 px-6 py-3 rounded-2xl font-bold text-xs border border-red-200"
+          >
+            Diagnóstico v2.2
           </button>
           <button
             onClick={() => onUpdate(localCriteria)}
-            className="hidden md:block bg-violet-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-violet-200"
+            className="hidden md:block bg-red-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-red-200"
           >
             Guardar Configuración
           </button>
@@ -45,7 +60,7 @@ const JobConfig: React.FC<JobConfigProps> = ({ criteria, onUpdate }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-8">
           <section className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 block">Puesto Requerido</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 block">Puesto</label>
             <div className="grid grid-cols-2 gap-3">
               {roles.map(role => (
                 <button
@@ -65,15 +80,15 @@ const JobConfig: React.FC<JobConfigProps> = ({ criteria, onUpdate }) => {
 
           <section className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 space-y-8">
              <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block">Experiencia Mínima</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block">Experiencia</label>
                 <div className="flex items-center gap-6">
                   <input 
                     type="range" min="0" max="10" 
-                    className="flex-1 accent-violet-600 h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer"
+                    className="flex-1 accent-red-600 h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer"
                     value={localCriteria.minYearsExperience}
                     onChange={(e) => setLocalCriteria({...localCriteria, minYearsExperience: parseInt(e.target.value)})}
                   />
-                  <div className="bg-violet-50 text-violet-600 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl">
+                  <div className="bg-red-50 text-red-600 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl">
                     {localCriteria.minYearsExperience}
                   </div>
                 </div>
@@ -83,9 +98,9 @@ const JobConfig: React.FC<JobConfigProps> = ({ criteria, onUpdate }) => {
 
         <div className="space-y-8">
           <section className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 h-full flex flex-col">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block">Instrucciones IA</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block">Instrucciones</label>
             <textarea
-              className="flex-1 w-full bg-slate-50 p-6 rounded-2xl border-none text-sm font-medium text-slate-700 focus:ring-2 focus:ring-violet-500 outline-none resize-none min-h-[200px]"
+              className="flex-1 w-full bg-slate-50 p-6 rounded-2xl border-none text-sm font-medium text-slate-700 focus:ring-2 focus:ring-red-500 outline-none resize-none min-h-[200px]"
               placeholder="Ej: Priorizar cercanía..."
               value={localCriteria.priorityCriteria}
               onChange={(e) => setLocalCriteria({ ...localCriteria, priorityCriteria: e.target.value })}
@@ -97,7 +112,7 @@ const JobConfig: React.FC<JobConfigProps> = ({ criteria, onUpdate }) => {
       <div className="md:hidden">
         <button
           onClick={() => onUpdate(localCriteria)}
-          className="w-full bg-violet-600 text-white py-5 rounded-3xl font-black text-lg shadow-2xl shadow-violet-200"
+          className="w-full bg-red-600 text-white py-5 rounded-3xl font-black text-lg shadow-2xl shadow-red-200"
         >
           Guardar Cambios
         </button>
