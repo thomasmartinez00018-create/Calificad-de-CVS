@@ -5,8 +5,18 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // Aplicando tu llave directamente para asegurar que el despliegue móvil tenga acceso total
-  const apiKey = "AIzaSyC1LJIHvkKTSLL9u7B2NVfp5BTZbkJqKT4";
+  // Obtenemos la llave exclusivamente del entorno
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey || apiKey.trim() === "") {
+    throw new Error("ERROR_CONFIG: No hay ninguna API Key configurada en el servidor (Vercel).");
+  }
+
+  // Validación de seguridad para evitar usar llaves de OpenAI en Gemini
+  if (apiKey.startsWith("sk-")) {
+    throw new Error("ERROR_PROVEEDOR: Has configurado una llave de OpenAI (sk-...), pero esta app requiere una de Google Gemini (AIza...). Consíguela en ai.google.dev");
+  }
+
   const ai = new GoogleGenAI({ apiKey });
   
   try {
@@ -14,16 +24,15 @@ export const analyzeResume = async (
       model: 'gemini-3-flash-preview',
       contents: `Analiza este CV para el puesto de ${criteria.role}.
       
-      REQUERIMIENTOS DEL DUEÑO:
+      CRITERIOS:
       "${criteria.priorityCriteria}"
 
-      INSTRUCCIONES DE FORMATO:
-      - Extrae los datos exactos del CV.
-      - 'experienciaAnios': Solo el número de años de experiencia relevante.
-      - 'ai_quality_score': Puntuación 0-100 basada en el fit para el puesto.
-      - 'resumen': Un comentario breve para el reclutador.
+      FORMATO JSON REQUERIDO:
+      - 'experienciaAnios': número entero.
+      - 'ai_quality_score': 0-100.
+      - 'resumen': párrafo profesional y directo.
 
-      TEXTO DEL CV:
+      TEXTO CV:
       ${resumeText}`,
       config: {
         responseMimeType: "application/json",
@@ -47,19 +56,21 @@ export const analyzeResume = async (
     });
 
     const text = response.text;
-    if (!text) throw new Error("La IA no devolvió datos legibles.");
-
-    // Parseo directo del JSON (Gemini 3 en modo JSON ya devuelve el objeto limpio)
+    if (!text) throw new Error("La IA respondió pero el contenido está vacío.");
+    
     return JSON.parse(text);
     
   } catch (error: any) {
     console.error("Gemini Critical Error:", error);
     
-    // Si sigue dando 403, es probable que la llave necesite habilitar la "Generative Language API" en Google Cloud
     if (error.message?.includes('403')) {
-      throw new Error("ERROR_ACCESO: La llave API tiene restricciones. Verifica en Google Cloud Console que la 'Generative Language API' esté habilitada.");
+      throw new Error("ERROR_ACCESO: La llave API de Google no tiene permisos o el proyecto está restringido.");
     }
     
-    throw new Error(`ERROR_SISTEMA: ${error.message || 'Fallo de conexión con la IA'}`);
+    if (error.message?.includes('401')) {
+      throw new Error("ERROR_KEY: La API Key configurada no es válida para Google Cloud.");
+    }
+    
+    throw new Error(error.message || "Error inesperado al conectar con el cerebro de IA.");
   }
 };

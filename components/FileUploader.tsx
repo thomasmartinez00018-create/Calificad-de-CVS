@@ -34,11 +34,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
     setErrorLog(null);
     const results: Candidate[] = [];
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      setCurrentFileName(file.name);
-      
-      try {
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setCurrentFileName(file.name);
+        
         const text = await extractTextFromPdf(file);
         const analysis = await analyzeResume(text, criteria);
         const puntajeFinal = calculateFinalScore(analysis);
@@ -52,19 +52,18 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
           appliedDate: new Date().toISOString(),
           puntajeFinal
         });
-      } catch (err: any) {
-        console.error(`Error procesando ${file.name}:`, err);
-        setErrorLog(err.message || "Error desconocido al procesar.");
-        // Si falla un archivo, cortamos el proceso para informar el error
-        setIsUploading(false);
-        return;
+        
+        setProgress(Math.round(((i + 1) / files.length) * 100));
       }
-      setProgress(Math.round(((i + 1) / files.length) * 100));
-    }
 
-    if (results.length > 0) {
-      onAnalysisComplete(results);
-    } else {
+      if (results.length > 0) {
+        onAnalysisComplete(results);
+      } else {
+        throw new Error("No se pudo extraer información válida de los archivos.");
+      }
+    } catch (err: any) {
+      console.error(`Error en el proceso de subida:`, err);
+      setErrorLog(err.message || "Fallo crítico en el análisis.");
       setIsUploading(false);
     }
   };
@@ -87,11 +86,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-3xl md:text-5xl font-black text-slate-900 italic">{progress}%</span>
-              <span className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Leyendo CV</span>
+              <span className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">IA Activa</span>
             </div>
           </div>
           <div className="space-y-2">
-            <h3 className="text-lg md:text-2xl font-black text-slate-900 uppercase italic">GastroHire IA</h3>
+            <h3 className="text-lg md:text-2xl font-black text-slate-900 uppercase italic">Procesando CV</h3>
             <p className="text-[10px] font-bold text-slate-400 truncate px-4 italic">{currentFileName}</p>
           </div>
         </div>
@@ -108,14 +107,14 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
         
         <div className="space-y-2">
           <h2 className="text-3xl font-black text-slate-900 uppercase italic leading-none tracking-tighter">Cargar CVs</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Puesto Seleccionado: {criteria.role}</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Puesto: {criteria.role}</p>
         </div>
 
         {errorLog && (
           <div className="bg-red-50 p-6 rounded-2xl border border-red-200 animate-in shake duration-500">
-            <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 italic">⚠️ Error Detectado</p>
+            <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 italic">⚠️ Problema con la llave</p>
             <p className="text-xs font-bold text-red-500 leading-tight">{errorLog}</p>
-            <p className="text-[9px] font-medium text-red-400 mt-3">Intenta subir archivos individuales o revisa tu conexión.</p>
+            <p className="text-[9px] font-medium text-red-400 mt-3">Revisa la API_KEY en Vercel. Debe ser de Google (AIza...), no de OpenAI.</p>
           </div>
         )}
 
@@ -136,7 +135,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
           />
         </label>
         
-        <p className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em]">Procesamiento V3.8 Mobile Pro</p>
+        <p className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em]">IA Engine V4.0 Cloud-Sync</p>
       </div>
     </div>
   );
