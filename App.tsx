@@ -24,8 +24,6 @@ const App: React.FC = () => {
       role: 'Mozo',
       priorityCriteria: 'Buscamos perfiles con excelente trato al cliente y presencia.',
       minYearsExperience: 2,
-      requiredSkills: ['Manipulación de Alimentos'],
-      availability: 'Rotativo',
       businessLocation: 'Palermo Soho, CABA'
     };
   });
@@ -54,7 +52,7 @@ const App: React.FC = () => {
   };
 
   const handleClearAll = () => {
-    if (window.confirm('¿ELIMINAR TODO? Esta acción borrará todos los candidatos de la base de datos actual.')) {
+    if (window.confirm('¿ELIMINAR TODO? Esta acción borrará todos los candidatos de la base de datos de manera permanente.')) {
       setCandidates([]);
       localStorage.removeItem(STORAGE_KEY_CANDIDATES);
     }
