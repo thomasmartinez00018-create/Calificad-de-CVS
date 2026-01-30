@@ -5,28 +5,19 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // En v2.4.0 damos prioridad máxima a la llave inyectada en el DOM por el index.html
-  const apiKey = 
-    (window as any).__GEMINI_KEY__ || 
-    process.env.API_KEY || 
-    (import.meta as any).env.VITE_GEMINI_API_KEY;
-
-  if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    throw new Error("❌ FALLO CRÍTICO: El celular no encuentra la llave. Intenta abrir la web en MODO INCÓGNITO.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Analiza este CV para el puesto de ${criteria.role}.
+      contents: `Extrae datos de este CV para el puesto de ${criteria.role}. 
+      REGLAS:
+      - Extrae años de experiencia TOTAL como número.
+      - Evalúa la CALIDAD de sus habilidades técnicas para el puesto (0-100) en 'ai_quality_score'.
+      - Genera 3 preguntas de entrevista breves sobre sus huecos laborales o dudas.
+      - Sé extremadamente conciso. No inventes datos.
       
-      CRITERIOS:
-      - Experiencia mínima: ${criteria.minYearsExperience} años.
-      - Prioridades: ${criteria.priorityCriteria}.
-      
-      CV A ANALIZAR:
+      TEXTO:
       ${resumeText}`,
       config: {
         responseMimeType: "application/json",
@@ -38,19 +29,20 @@ export const analyzeResume = async (
             telefono: { type: Type.STRING },
             experienciaAnios: { type: Type.NUMBER },
             localidad: { type: Type.STRING },
-            fortalezas: { type: Type.ARRAY, items: { type: Type.STRING } },
-            debilidades: { type: Type.ARRAY, items: { type: Type.STRING } },
-            disponibilidadDetectada: { type: Type.STRING },
             habilidadesEncontradas: { type: Type.ARRAY, items: { type: Type.STRING } },
-            puntajeIA: { type: Type.NUMBER },
+            fortalezas: { type: Type.ARRAY, items: { type: Type.STRING } },
+            ai_quality_score: { type: Type.NUMBER },
+            preguntasEntrevista: { type: Type.ARRAY, items: { type: Type.STRING } },
             resumen: { type: Type.STRING }
           },
-          required: ["nombre", "email", "telefono", "experienciaAnios", "localidad", "fortalezas", "debilidades", "puntajeIA", "resumen"]
+          required: ["nombre", "email", "telefono", "experienciaAnios", "ai_quality_score", "preguntasEntrevista", "resumen"]
         }
       }
     });
 
-    return JSON.parse(response.text);
+    const text = response.text;
+    if (!text) throw new Error("Respuesta vacía");
+    return JSON.parse(text);
   } catch (error: any) {
     console.error("Gemini Error:", error);
     throw error;

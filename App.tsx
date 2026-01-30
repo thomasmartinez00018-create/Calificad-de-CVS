@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   HiringCriteria, 
@@ -10,8 +9,8 @@ import JobConfig from './components/JobConfig';
 import Dashboard from './components/Dashboard';
 import FileUploader from './components/FileUploader';
 
-const STORAGE_KEY_CANDIDATES = 'gh_candidates_data';
-const STORAGE_KEY_CRITERIA = 'gh_hiring_criteria';
+const STORAGE_KEY_CANDIDATES = 'gh_candidates_data_v3';
+const STORAGE_KEY_CRITERIA = 'gh_hiring_criteria_v3';
 
 const App: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>(() => {
@@ -23,11 +22,11 @@ const App: React.FC = () => {
     const saved = localStorage.getItem(STORAGE_KEY_CRITERIA);
     return saved ? JSON.parse(saved) : {
       role: 'Mozo',
-      priorityCriteria: 'Buscamos perfiles con excelente trato al cliente.',
-      minYearsExperience: 1,
+      priorityCriteria: 'Buscamos perfiles con excelente trato al cliente y presencia.',
+      minYearsExperience: 2,
       requiredSkills: ['Manipulación de Alimentos'],
       availability: 'Rotativo',
-      proximityWeight: 50
+      businessLocation: 'Palermo Soho, CABA'
     };
   });
 
@@ -55,17 +54,18 @@ const App: React.FC = () => {
   };
 
   const handleClearAll = () => {
-    if (window.confirm('¿Estás seguro de eliminar todos los candidatos?')) {
+    if (window.confirm('¿ELIMINAR TODO? Esta acción borrará todos los candidatos de la base de datos actual.')) {
       setCandidates([]);
+      localStorage.removeItem(STORAGE_KEY_CANDIDATES);
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-slate-50 overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen bg-slate-50 overflow-hidden font-['Plus_Jakarta_Sans']">
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-8 pt-6 px-4 md:px-12">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-1 overflow-y-auto no-scrollbar pb-32 md:pb-12 pt-8 px-6 md:px-16">
+        <div className="max-w-6xl mx-auto">
           {activeTab === 'dashboard' && (
             <Dashboard 
               candidates={candidates} 

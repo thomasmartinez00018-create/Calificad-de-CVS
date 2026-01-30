@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { HiringCriteria, Candidate, CandidateStatus } from '../types';
 import { extractTextFromPdf } from '../services/pdfService';
@@ -13,14 +12,20 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentFileName, setCurrentFileName] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const calculateFinalScore = (aiScore: number, candidateExp: number, minExp: number): number => {
-    let expScore = 100;
-    if (candidateExp < minExp) {
-      expScore = Math.max(0, 100 - (minExp - candidateExp) * 25);
+  // Sincronización Real: Ranking ≈ Match de IA
+  const calculateFinalScore = (analysis: any): number => {
+    let score = analysis.ai_quality_score;
+
+    // Solo pequeños ajustes por datos duros de negocio (Cercanía)
+    const locCandidate = analysis.localidad?.toLowerCase() || '';
+    const locBusiness = criteria.businessLocation.toLowerCase();
+    
+    if (locCandidate.includes(locBusiness) || locBusiness.includes(locCandidate)) {
+      score += 5; // Bono de proximidad
     }
-    return Math.round((aiScore * 0.6) + (expScore * 0.4));
+
+    return Math.min(Math.max(Math.round(score), 0), 100);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,24 +33,17 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    setErrorMessage(null);
     setProgress(0);
-    const total = files.length;
     const results: Candidate[] = [];
 
-    for (let i = 0; i < total; i++) {
+    for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setCurrentFileName(file.name);
       
       try {
         const text = await extractTextFromPdf(file);
         const analysis = await analyzeResume(text, criteria);
-        
-        const puntajeFinal = calculateFinalScore(
-          analysis.puntajeIA,
-          analysis.experienciaAnios,
-          criteria.minYearsExperience
-        );
+        const puntajeFinal = calculateFinalScore(analysis);
 
         results.push({
           ...analysis,
@@ -56,68 +54,76 @@ const FileUploader: React.FC<FileUploaderProps> = ({ criteria, onAnalysisComplet
           appliedDate: new Date().toISOString(),
           puntajeFinal
         });
-
-      } catch (err: any) {
-        console.error("Error en el proceso:", err);
-        setErrorMessage(err.message || "Error desconocido analizando el archivo.");
-        break; // Detenemos el proceso si hay un error crítico
+      } catch (err) {
+        console.error("Fallo en archivo:", file.name);
       }
-      setProgress(Math.round(((i + 1) / total) * 100));
+      setProgress(Math.round(((i + 1) / files.length) * 100));
     }
 
-    if (results.length > 0 && !errorMessage) {
-      onAnalysisComplete(results);
-    }
-    
+    onAnalysisComplete(results);
     setIsUploading(false);
   };
 
+  if (isUploading) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-slate-50 flex items-center justify-center p-6 animate-in fade-in duration-500">
+        <div className="w-full max-w-lg bg-white rounded-[3rem] p-12 shadow-2xl border border-slate-100 text-center space-y-10">
+          <div className="relative w-48 h-48 mx-auto flex items-center justify-center">
+            {/* Círculo de Carga Refinado */}
+            <svg className="w-full h-full -rotate-90">
+              <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-100" />
+              <circle 
+                cx="96" cy="96" r="80" 
+                stroke="currentColor" strokeWidth="12" fill="transparent" 
+                strokeDasharray={502} 
+                strokeDashoffset={502 - (502 * progress) / 100} 
+                className="text-slate-900 transition-all duration-700 ease-out" 
+                strokeLinecap="round" 
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-4xl font-black text-slate-900 italic">{progress}%</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 italic">Analizando</span>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter italic">GastroHire IA está leyendo</h3>
+            <p className="text-xs font-bold text-slate-400 truncate px-8">{currentFileName}</p>
+          </div>
+
+          <div className="pt-4">
+            <div className="flex justify-center gap-1">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="w-1.5 h-1.5 bg-slate-900 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.2}s` }}></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full flex flex-col justify-center animate-in fade-in zoom-in-95 duration-500">
-      <div className={`bg-white rounded-[40px] p-8 md:p-12 shadow-xl border border-slate-50 transition-all ${isUploading ? 'scale-105' : ''}`}>
-        {!isUploading ? (
-          <div className="text-center space-y-6">
-            <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-600">
-              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-            </div>
-            <div>
-              <h2 className="text-2xl font-black text-slate-900">Subir CVs</h2>
-              <p className="text-sm font-medium text-slate-400 mt-2 leading-relaxed px-4">
-                Puesto: <span className="text-indigo-600 font-bold">{criteria.role}</span>
-              </p>
-            </div>
-
-            {errorMessage && (
-              <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-2xl text-xs font-bold">
-                ⚠️ {errorMessage}
-              </div>
-            )}
-
-            <label className="block">
-              <span className="w-full bg-slate-900 text-white py-5 px-8 rounded-3xl font-black text-lg shadow-xl block cursor-pointer active:scale-95 transition-all">
-                Seleccionar PDF
-              </span>
-              <input type="file" multiple accept=".pdf" className="hidden" onChange={handleFileChange} />
-            </label>
-            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Solo archivos PDF</p>
+    <div className="h-full flex flex-col justify-center max-w-xl mx-auto py-12">
+      <div className="bg-white rounded-[3rem] p-12 shadow-2xl border border-slate-100 hover:scale-[1.01] transition-all">
+        <div className="text-center space-y-8">
+          <div className="w-24 h-24 bg-slate-900 text-white rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl rotate-3">
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
           </div>
-        ) : (
-          <div className="text-center space-y-8 py-4">
-            <div className="relative w-40 h-40 mx-auto">
-               <svg className="w-full h-full -rotate-90">
-                 <circle cx="80" cy="80" r="74" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-50" />
-                 <circle cx="80" cy="80" r="74" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={465} strokeDashoffset={465 - (465 * progress) / 100} className="text-indigo-600 transition-all duration-700 ease-out" strokeLinecap="round" />
-               </svg>
-               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                 <span className="text-3xl font-black text-slate-900">{progress}%</span>
-               </div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-bold text-slate-700 truncate px-4">Analizando: {currentFileName}</p>
-              <p className="text-[10px] text-indigo-500 animate-pulse font-black uppercase">Consultando Inteligencia Artificial...</p>
-            </div>
+          <div>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">Cargar Candidatos</h2>
+            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2">Puesto: {criteria.role}</p>
           </div>
-        )}
+
+          <label className="block group">
+            <div className="w-full bg-slate-900 text-white py-6 px-8 rounded-[1.5rem] font-black text-lg shadow-xl cursor-pointer group-hover:bg-slate-800 transition-all text-center uppercase italic">
+              Seleccionar PDFs
+            </div>
+            <input type="file" multiple accept=".pdf" className="hidden" onChange={handleFileChange} />
+          </label>
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">IA Predictiva V3.4</p>
+        </div>
       </div>
     </div>
   );

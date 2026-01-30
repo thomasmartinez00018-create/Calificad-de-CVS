@@ -1,4 +1,3 @@
-
 export type JobRole = 'Mozo' | 'Cocinero' | 'Delivery' | 'Admin' | 'Limpieza' | 'Hostess';
 
 export enum CandidateStatus {
@@ -11,22 +10,19 @@ export interface HiringCriteria {
   role: JobRole;
   priorityCriteria: string;
   minYearsExperience: number;
-  requiredSkills: string[]; // Ej: ["Carnet de manipulación", "Inglés"]
-  availability: 'Mañana' | 'Tarde' | 'Noche' | 'Rotativo' | 'Cualquiera';
-  proximityWeight: number; // 0 a 100
+  businessLocation: string;
 }
 
 export interface CandidateAnalysis {
   nombre: string;
   email: string;
   telefono: string;
-  experienciaAnios: number;
+  experienciaAnios: number; // Extraído por IA, verificado por código
   localidad: string;
-  fortalezas: string[];
-  debilidades: string[]; // Lo que le falta según el puesto
-  disponibilidadDetectada: string;
   habilidadesEncontradas: string[];
-  puntajeIA: number;
+  fortalezas: string[];
+  ai_quality_score: number; // Solo evaluación de calidad de habilidades (0-100)
+  preguntasEntrevista: string[];
   resumen: string;
 }
 
@@ -36,5 +32,5 @@ export interface Candidate extends CandidateAnalysis {
   jobRole: JobRole;
   fileName: string;
   appliedDate: string;
-  puntajeFinal: number; // Calculado combinando IA + Reglas automáticas
+  puntajeFinal: number; // Calculado en Frontend: (IA * 0.6) + (ExpMatch * 0.4)
 }
