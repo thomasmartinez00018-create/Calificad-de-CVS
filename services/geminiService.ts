@@ -5,21 +5,10 @@ export const analyzeResume = async (
   resumeText: string, 
   criteria: HiringCriteria
 ): Promise<CandidateAnalysis> => {
-  // Buscamos la llave en todas las fuentes posibles donde Vite/Vercel la inyectan
-  const apiKey = 
-    (process.env.API_KEY) || 
-    ((import.meta as any).env?.VITE_GEMINI_API_KEY) || 
-    ((window as any).VITE_GEMINI_API_KEY);
+  // Usamos la llave proporcionada por el usuario directamente (uso "nativo")
+  // para evitar problemas de propagación de variables de entorno en navegadores móviles.
+  const apiKey = "AIzaSyBM2d5UYbkPBdpFwuY5Pou_4pMZ9ICubF0";
   
-  if (!apiKey || apiKey.trim() === "" || apiKey === "undefined") {
-    throw new Error("ERROR_CONFIG: No se detecta la API Key. Verifica las variables de entorno en Vercel y redespliega.");
-  }
-
-  // Validación de seguridad para evitar usar llaves de OpenAI en Gemini
-  if (apiKey.startsWith("sk-")) {
-    throw new Error("ERROR_PROVEEDOR: Has configurado una llave de OpenAI (sk-...), pero esta app requiere una de Google Gemini (AIza...). Cambia la llave en Vercel.");
-  }
-
   const ai = new GoogleGenAI({ apiKey });
   
   try {
@@ -27,10 +16,10 @@ export const analyzeResume = async (
       model: 'gemini-3-flash-preview',
       contents: `Analiza este CV para el puesto de ${criteria.role}.
       
-      CRITERIOS:
+      INSTRUCCIONES DE PRIORIDAD:
       "${criteria.priorityCriteria}"
 
-      TEXTO CV:
+      TEXTO DEL CV:
       ${resumeText}`,
       config: {
         responseMimeType: "application/json",
@@ -59,12 +48,16 @@ export const analyzeResume = async (
     return JSON.parse(text);
     
   } catch (error: any) {
-    console.error("Gemini Error:", error);
+    console.error("Error Crítico de Gemini:", error);
     
-    if (error.message?.includes('403') || error.message?.includes('401')) {
-      throw new Error("ERROR_ACCESO: La llave API es inválida o no tiene permisos. Revisa que sea una llave de Gemini activa.");
+    // Manejo específico de errores comunes
+    if (error.message?.includes('403')) {
+      throw new Error("ERROR_ACCESO: La llave API de Google no tiene permisos suficientes para este modelo.");
+    }
+    if (error.message?.includes('429')) {
+      throw new Error("ERROR_LIMITE: Demasiadas solicitudes. Espera un momento.");
     }
     
-    throw new Error(error.message || "Fallo de conexión con el motor de IA.");
+    throw new Error(error.message || "No se pudo conectar con el motor de IA.");
   }
 };
