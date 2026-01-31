@@ -1,4 +1,4 @@
-export type JobRole = 'Mozo' | 'Cocinero' | 'Delivery' | 'Admin' | 'Limpieza' | 'Hostess';
+export type JobRole = 'Cocinero' | 'Fiambrero' | 'Recepcionista' | 'Commis' | 'Bachero' | 'RR.PP' | 'Valet Parking' | 'Cajero' | 'Mozo';
 
 export enum CandidateStatus {
   PENDIENTE = 'Pendiente',
@@ -17,11 +17,14 @@ export interface CandidateAnalysis {
   nombre: string;
   email: string;
   telefono: string;
-  experienciaAnios: number; // Extraído por IA, verificado por código
+  experienciaAnios: number;
+  cantidadTrabajos: number;
+  edad: number | null;
   localidad: string;
+  disponibilidadHoraria: string;
   habilidadesEncontradas: string[];
   fortalezas: string[];
-  ai_quality_score: number; // Solo evaluación de calidad de habilidades (0-100)
+  ai_quality_score: number;
   preguntasEntrevista: string[];
   resumen: string;
 }
@@ -32,5 +35,5 @@ export interface Candidate extends CandidateAnalysis {
   jobRole: JobRole;
   fileName: string;
   appliedDate: string;
-  puntajeFinal: number; // Calculado en Frontend: (IA * 0.6) + (ExpMatch * 0.4)
+  puntajeFinal: number;
 }
